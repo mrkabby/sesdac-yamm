@@ -6,6 +6,9 @@ import CandidateModal from '../components/CandidateModal';
 import Pagination from '../components/Pagination';
 import { Candidate } from '../types/types';
 
+
+type SheetRow = { c: { v: string | null }[] };
+
 export default function Home() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [search, setSearch] = useState('');
@@ -16,27 +19,36 @@ export default function Home() {
   const sheetID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID;
 const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
 
-  useEffect(() => {
-    const fetchCandidates = async () => {32
-      const res = await fetch(sheetURL);
-      const text = await res.text();
-      const json = JSON.parse(text.substring(47).slice(0, -2));
+   useEffect(() => {
+    if (!sheetID) {
+      console.error('Missing sheet ID!');
+      return;
+    }
 
-      const rows = json.table.rows.map((row: any): Candidate => ({
-        image: row.c[0]?.v || '',
-        fullName: row.c[1]?.v || '',
-        qualifications: row.c[2]?.v || '',
-        profession: row.c[3]?.v || '',
-        skills: row.c[4]?.v || '',
-        telephone: row.c[5]?.v || '',
-        email: row.c[6]?.v || '',
-      }));
+    const fetchCandidates = async () => {
+      try {
+        const res = await fetch(sheetURL);
+        const text = await res.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
 
-      setCandidates(rows);
+        const rows = (json.table.rows as SheetRow[]).map((row): Candidate => ({
+          image: row.c[0]?.v || '',
+          fullName: row.c[1]?.v || '',
+          qualifications: row.c[2]?.v || '',
+          profession: row.c[3]?.v || '',
+          skills: row.c[4]?.v || '',
+          telephone: row.c[5]?.v || '',
+          email: row.c[6]?.v || '',
+        }));
+
+        setCandidates(rows);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
     };
 
     fetchCandidates();
-  }, []);
+  }, [sheetURL]);
 
   const filtered = candidates.filter((c) =>
     `${c.fullName} ${c.profession} ${c.skills}`.toLowerCase().includes(search.toLowerCase())
