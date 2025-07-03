@@ -1,4 +1,6 @@
-import { Candidate } from '../types/types';
+'use client';
+import Image from 'next/image';
+import { Candidate } from '@/types/types';
 
 type Props = {
   selected: Candidate;
@@ -21,11 +23,15 @@ export default function CandidateModal({ selected, onClose }: Props) {
         >
           &times;
         </button>
-        <img
-          src={selected.image || '/placeholder.png'}
-          alt={selected.fullName}
-          className="w-full h-56 object-cover rounded-md mb-4"
-        />
+        <div className="relative w-full h-56 mb-4">
+          <Image
+            src={selected.image || '/placeholder.png'}
+            alt={selected.fullName}
+            layout="fill"
+            objectFit="cover"
+            className="rounded-md"
+          />
+        </div>
         <h2 className="text-2xl font-bold">{selected.fullName}</h2>
         <p className="mt-2 text-sm text-gray-700">
           <strong>Qualifications:</strong> {selected.qualifications}
